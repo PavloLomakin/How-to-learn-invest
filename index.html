@@ -1,0 +1,20 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Youtube</title> <style> body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; } header { background: #333; color: #fff; padding: 10px 20px; text-align: center; } main { padding: 20px; display: flex; flex-wrap: wrap; justify-content: center; } .video-container { margin: 10px; width: 300px; height: 200px; } iframe { width: 100%; height: 100%; border: none; } footer { background: #333; color: #fff; text-align: center; padding: 10px 20px; position: fixed; bottom: 0; width: 100%; } </style> </head> <body> <header> <h1>Как научится инвестировать?</h1> </header> <main id="videoSection"> <!-- Videos will be dynamically added here --> </main> <footer> <p>© 2025 Акции с Павлом Ломакиным</p> </footer> <script> const videoIds = [ "ha6twKBNQuE", "e6ZS2lvzwpE" ]; // Replace with actual video IDs from your channel
+
+const videoSection = document.getElementById("videoSection");
+
+videoIds.forEach(id => {
+    const container = document.createElement("div");
+    container.className = "video-container";
+
+    const iframe = document.createElement("iframe");
+    iframe.src = "https://www.youtube.com/embed/" + id;
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    iframe.allowFullscreen = true;
+
+    container.appendChild(iframe);
+    videoSection.appendChild(container);
+});
+
+</script>
+
+</body> </html>
