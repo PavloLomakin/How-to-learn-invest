@@ -1,20 +1,38 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Youtube</title> <style> body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; } header { background: #333; color: #fff; padding: 10px 20px; text-align: center; } main { padding: 20px; display: flex; flex-wrap: wrap; justify-content: center; } .video-container { margin: 10px; width: 300px; height: 200px; } iframe { width: 100%; height: 100%; border: none; } footer { background: #333; color: #fff; text-align: center; padding: 10px 20px; position: fixed; bottom: 0; width: 100%; } </style> </head> <body> <header> <h1>Как научится инвестировать?</h1> </header> <main id="videoSection"> <!-- Videos will be dynamically added here --> </main> <footer> <p>© 2025 Акции с Павлом Ломакиным</p> </footer> <script> const videoIds = [ "ha6twKBNQuE", "e6ZS2lvzwpE" ]; // Replace with actual video IDs from your channel
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Youtube</title> <style> body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; } header { background: #333; color: #fff; padding: 10px 20px; text-align: center; } main { padding: 20px; display: flex; flex-wrap: wrap; justify-content: center; } .video-container { margin: 10px; width: 300px; height: 200px; } iframe { width: 100%; height: 100%; border: none; } footer { background: #333; color: #fff; text-align: center; padding: 10px 20px; position: fixed; bottom: 0; width: 100%; } </style> </head> <body> <header> <h1>Как научится инвестировать?</h1> </header> <main id="videoSection"> <!-- Videos will be dynamically added here --> </main>
 
-const videoSection = document.getElementById("videoSection");
+<section id="connect" style="padding: 20px; background-color: #fff; text-align: center;">
+    <h4>🧵 Делюсь мыслями и идеями в Threads <a href="https://www.threads.net/@pavlo.lomakin" target="_blank">threads.net/@pavlo.lomakin</a></h4> 
+    <h4>Поддержать:  ☕️<a href="https://ko-fi.com/pavlo_lomakin" target="_blank">Угостить чашкой кофе   </a> •
+        <a href="https://www.patreon.com/PavloLomakin" target="_blank">Patreon</a> •
+        <a href="https://www.paypal.me/pavlomakin?country.x=CA&locale.x=en_US" target="_blank">PayPal   </a></h4>
 
-videoIds.forEach(id => {
-    const container = document.createElement("div");
-    container.className = "video-container";
+    <h4>✉ Сотрудничество и предложения Email: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
+</section>
 
-    const iframe = document.createElement("iframe");
-    iframe.src = "https://www.youtube.com/embed/" + id;
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    iframe.allowFullscreen = true;
+<footer>
+    <p>© 2025 Акции с Павлом Ломакиным</p>
+</footer>
 
-    container.appendChild(iframe);
-    videoSection.appendChild(container);
-});
+<script>
+    const videoIds = [
+        "ha6twKBNQuE",
+        "e6ZS2lvzwpE"
+    ]; // Replace with actual video IDs from your channel
 
+    const videoSection = document.getElementById("videoSection");
+
+    videoIds.forEach(id => {
+        const container = document.createElement("div");
+        container.className = "video-container";
+
+        const iframe = document.createElement("iframe");
+        iframe.src = "https://www.youtube.com/embed/" + id;
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+        iframe.allowFullscreen = true;
+
+        container.appendChild(iframe);
+        videoSection.appendChild(container);
+    });
 </script>
 
 </body> </html>
