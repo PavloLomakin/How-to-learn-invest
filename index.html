@@ -1,38 +1,184 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Youtube</title> <style> body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; } header { background: #333; color: #fff; padding: 10px 20px; text-align: center; } main { padding: 20px; display: flex; flex-wrap: wrap; justify-content: center; } .video-container { margin: 10px; width: 300px; height: 200px; } iframe { width: 100%; height: 100%; border: none; } footer { background: #333; color: #fff; text-align: center; padding: 10px 20px; position: fixed; bottom: 0; width: 100%; } </style> </head> <body> <header> <h1>Как научится инвестировать?</h1> </header> <main id="videoSection"> <!-- Videos will be dynamically added here --> </main>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Как научиться инвестировать?</title>
 
-<section id="connect" style="padding: 20px; background-color: #fff; text-align: center;">
-    <h4>🧵 Делюсь мыслями и идеями в Threads <a href="https://www.threads.net/@pavlo.lomakin" target="_blank">threads.net/@pavlo.lomakin</a></h4> 
-    <h4>Поддержать:  ☕️<a href="https://ko-fi.com/pavlo_lomakin" target="_blank">Угостить чашкой кофе   </a> •
-        <a href="https://www.patreon.com/PavloLomakin" target="_blank">Patreon</a> •
-        <a href="https://www.paypal.me/pavlomakin?country.x=CA&locale.x=en_US" target="_blank">PayPal   </a></h4>
+  <!-- Google Font -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
 
-    <h4>✉ Сотрудничество и предложения Email: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
-</section>
+  <style>
+    :root {
+      --primary-color: #1a73e8;
+      --dark-bg: #333;
+      --light-bg: #f4f4f4;
+      --card-bg: #fff;
+      --txt-color: #333;
+      --footer-bg: #222;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --max-width: 1200px;
+    }
 
-<footer>
-    <p>© 2025 Акции с Павлом Ломакиным</p>
-</footer>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-<script>
-    const videoIds = [
-        "ha6twKBNQuE",
-        "e6ZS2lvzwpE"
-    ]; // Replace with actual video IDs from your channel
+    body {
+      font-family: "Roboto", Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--txt-color);
+      line-height: 1.6;
+    }
 
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: color 0.2s ease-in-out;
+    }
+
+    a:hover {
+      color: #0049b7;
+    }
+
+    header {
+      background: var(--dark-bg);
+      color: #fff;
+      text-align: center;
+      padding: 1.25rem 0;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 500;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .video-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px var(--shadow);
+      transform: translateY(0);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .video-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px var(--shadow);
+    }
+
+    .video-card iframe {
+      width: 100%;
+      height: 180px;
+      display: block;
+    }
+
+    section#connect {
+      background: var(--card-bg);
+      padding: 2rem 1rem;
+      text-align: center;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    section#connect h4 {
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    section#connect a {
+      margin: 0 0.5rem;
+      font-weight: 500;
+    }
+
+    footer {
+      background: var(--footer-bg);
+      color: #ddd;
+      text-align: center;
+      padding: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    footer p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <h1>Как научиться инвестировать?</h1>
+    </div>
+  </header>
+
+  <main class="container" id="videoSection">
+    <!-- YouTube videos will be injected here -->
+  </main>
+
+  <section id="connect" class="container">
+    <h4>🧵 Делюсь мыслями и идеями в Threads</h4>
+    <a href="https://www.threads.net/@pavlo.lomakin" target="_blank">
+      threads.net/@pavlo.lomakin
+    </a>
+
+    <h4>Поддержать: ☕️ 
+      <a href="https://ko-fi.com/pavlo_lomakin" target="_blank">Купи кофе</a> •
+      <a href="https://www.patreon.com/PavloLomakin" target="_blank">Patreon</a> •
+      <a href="https://www.paypal.me/pavlomakin?country.x=CA&locale.x=en_US" target="_blank">PayPal</a>
+    </h4>
+
+    <h4>✉ Сотрудничество: 
+      <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a>
+    </h4>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 Акции с Павлом Ломакиным</p>
+    </div>
+  </footer>
+
+  <script>
+    const videoIds = ["ha6twKBNQuE", "e6ZS2lvzwpE"];
     const videoSection = document.getElementById("videoSection");
 
-    videoIds.forEach(id => {
-        const container = document.createElement("div");
-        container.className = "video-container";
+    videoIds.forEach((id) => {
+      const card = document.createElement("div");
+      card.className = "video-card";
 
-        const iframe = document.createElement("iframe");
-        iframe.src = "https://www.youtube.com/embed/" + id;
-        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-        iframe.allowFullscreen = true;
+      const iframe = document.createElement("iframe");
+      iframe.src = `https://www.youtube.com/embed/${id}`;
+      iframe.allow =
+        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      iframe.allowFullscreen = true;
 
-        container.appendChild(iframe);
-        videoSection.appendChild(container);
+      card.appendChild(iframe);
+      videoSection.appendChild(card);
     });
-</script>
+  </script>
 
-</body> </html>
+</body>
+</html>
+```
