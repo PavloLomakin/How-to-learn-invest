@@ -1,6 +1,96 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Youtube</title> <style> body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; } header { background: #333; color: #fff; padding: 10px 20px; text-align: center; } main { padding: 20px; display: flex; flex-wrap: wrap; justify-content: center; } .video-container { margin: 10px; width: 300px; height: 200px; } iframe { width: 100%; height: 100%; border: none; } footer { background: #333; color: #fff; text-align: center; padding: 10px 20px; position: fixed; bottom: 0; width: 100%; } </style> </head> <body> <header> <h1>Как научится инвестировать?</h1> </header> <main id="videoSection"> <!-- Videos will be dynamically added here --> </main>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Инвестиции — это просто 😊</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #2b7a78;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+    section {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    h2 {
+      color: #3aafa9;
+      margin-top: 0;
+    }
+    ul {
+      padding-left: 1.2rem;
+    }
+    li {
+      margin-bottom: 0.8rem;
+    }
+    a {
+      color: #2b7a78;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .note {
+      background: #def2f1;
+      padding: 1rem;
+      border-left: 4px solid #3aafa9;
+      margin-top: 1rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Инвестиции — это просто 😊</h1>
+    <p>Анализ акций на примере Microsoft (MSFT)</p>
+  </header>
 
-<section id="connect" style="padding: 20px; background-color: #fff; text-align: center;">
+  <section>
+    <h2>Что нужно смотреть 🔍:</h2>
+    <ul>
+      <li>📈 <strong>ROE</strong> ≥ 12% за последние 5 лет — <a href="https://stockanalysis.com/stocks/msft/financials/ratios/" target="_blank">смотреть здесь</a></li>
+      <li>💰 <strong>Debt / Equity Ratio</strong> &lt; 1.5, желательно &lt; 1 — <a href="https://stockanalysis.com/stocks/msft/financials/ratios/" target="_blank">смотреть здесь</a></li>
+      <li>📊 Рост <strong>Revenue</strong> за 5 лет — <a href="https://stockanalysis.com/stocks/msft/financials/" target="_blank">смотреть здесь</a></li>
+      <li>🛡️ Наличие <strong>широкого экономического рва</strong> — спросите ChatGPT</li>
+      <li>🧮 Оценка <strong>Intrinsic Value</strong> — <a href="https://pavlolomakin.github.io/IV-calculator/" target="_blank">калькулятор</a></li>
+    </ul>
+
+    <h2>Как пользоваться калькулятором Intrinsic Value 🧠:</h2>
+    <ul>
+      <li>📈 <strong>Estimated Annual Growth Rate (%)</strong> — <a href="https://stockanalysis.com/stocks/msft/forecast/" target="_blank">EPS Growth 2026–2027</a></li>
+      <li>📐 <strong>Expected Future P/E Ratio</strong> — <a href="https://stockanalysis.com/stocks/msft/financials/ratios/" target="_blank">исторические значения</a> с поправками</li>
+      <li>🎯 <strong>Discount Rate (%)</strong> — обычно 10% (диапазон 8–12%)</li>
+    </ul>
+
+    <div class="note">
+      <strong>Поправки к P/E:</strong> если прогноз по EPS Growth выше исторического — можно использовать средний исторический P/E. Если ниже — следует занизить.
+    </div>
+
+    <h2>Фундамент для успешных инвестиций 🏗️:</h2>
+    <ul>
+      <li>📆 DCA — 4 покупки каждую неделю при открытии позиции</li>
+      <li>🧺 Диверсификация — 12–18 акций</li>
+      <li>Выбор акций США или стран с рейтингом AAA — <a href="https://en.wikipedia.org/wiki/List_of_countries_by_credit_rating" target="_blank">проверить рейтинг стран</a></li>
+      <li>⏳ Горизонт инвестиций — минимум 3 года</li>
+      <li>🚫 Не покупать после резкого роста акции</li>
+    </ul>
+    <section id="connect" style="padding: 20px; background-color: #fff; text-align: center;">
     <h4>🧵 Делюсь мыслями и идеями в Threads <a href="https://www.threads.net/@pavlo.lomakin" target="_blank">threads.net/@pavlo.lomakin</a></h4> 
     <h4>Поддержать:  ☕️<a href="https://ko-fi.com/pavlo_lomakin" target="_blank">Угостить чашкой кофе   </a> •
         <a href="https://www.patreon.com/PavloLomakin" target="_blank">Patreon</a> •
@@ -8,11 +98,10 @@
 
     <h4>✉ Сотрудничество и предложения Email: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
 </section>
-
+<main id="videoSection"> <!-- Videos will be dynamically added here --> </main>
 <footer>
     <p>© 2025 Акции с Павлом Ломакиным</p>
 </footer>
-
 <script>
     const videoIds = [
         "ha6twKBNQuE",
@@ -34,5 +123,6 @@
         videoSection.appendChild(container);
     });
 </script>
-
-</body> </html>
+  </section>
+</body>
+</html>
