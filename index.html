@@ -8,14 +8,19 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      background-color: #f7f7f7;
-      color: #333;
-    }
-    header {
       background-color: #111;
       color: #fff;
+    }
+    header {
       text-align: center;
       padding: 40px 20px;
+    }
+    header img {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
     }
     header h1 {
       margin: 0;
@@ -24,10 +29,11 @@
     header p {
       font-size: 1.1em;
       margin-top: 10px;
+      color: #ccc;
     }
-    section {
-      padding: 30px;
+    .links {
       text-align: center;
+      padding: 30px 20px;
     }
     .links a {
       display: block;
@@ -35,38 +41,41 @@
       padding: 12px 20px;
       width: 80%;
       max-width: 500px;
-      background-color: #fff;
+      background-color: #222;
       border-radius: 6px;
       text-decoration: none;
-      color: #111;
+      color: #fff;
       font-weight: 500;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
       transition: background-color 0.3s;
     }
     .links a:hover {
-      background-color: #eaeaea;
+      background-color: #333;
     }
     #connect {
-      padding: 20px;
-      background-color: #fff;
+      padding: 25px 20px;
+      background-color: #111;
       text-align: center;
-      border-top: 1px solid #ddd;
+      border-top: 1px solid #333;
     }
     #connect a {
-      color: #0077cc;
+      color: #4da3ff;
       text-decoration: none;
     }
     #connect a:hover {
       text-decoration: underline;
+    }
+    #connect h4 {
+      margin: 10px 0;
+      font-weight: 400;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <header>
-  <img src="https://github.com/PavloLomakin/tracker/blob/main/image.png?raw=true"
-       alt="Pavlo Lomakin" style="width:160px; height:160px; border-radius:50%; object-fit:cover; margin-bottom:15px;">
+    <img src="https://github.com/PavloLomakin/tracker/blob/main/image.png?raw=true" alt="Pavlo Lomakin">
     <h1>Pavlo Lomakin</h1>
     <p>Акции с Павлом Ломакиным</p>
   </header>
@@ -84,8 +93,7 @@
       <a href="https://www.patreon.com/PavloLomakin" target="_blank">Patreon</a> •
       <a href="https://www.paypal.me/pavlomakin?country.x=CA&amp;locale.x=en_US" target="_blank">PayPal</a>
     </h4>
-
-    <h4>✉ Сотрудничество и предложения Email: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
+    <h4>✉ Сотрудничество и предложения: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
   </section>
 
 </body>
