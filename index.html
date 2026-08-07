@@ -2,133 +2,91 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Инвестиции — это просто 😊</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pavlo Lomakin — Инвестиции и Аналитика</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
-      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 0;
+      background-color: #f7f7f7;
+      color: #333;
     }
     header {
-      background: #2b7a78;
-      color: white;
-      padding: 2rem;
+      background-color: #111;
+      color: #fff;
       text-align: center;
+      padding: 40px 20px;
     }
-    h1 {
+    header h1 {
       margin: 0;
-      font-size: 2.5rem;
+      font-size: 2em;
+    }
+    header p {
+      font-size: 1.1em;
+      margin-top: 10px;
     }
     section {
-      max-width: 800px;
-      margin: 2rem auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      padding: 30px;
+      text-align: center;
     }
-    h2 {
-      color: #3aafa9;
-      margin-top: 0;
+    .links a {
+      display: block;
+      margin: 10px auto;
+      padding: 12px 20px;
+      width: 80%;
+      max-width: 500px;
+      background-color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #111;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
     }
-    ul {
-      padding-left: 1.2rem;
+    .links a:hover {
+      background-color: #eaeaea;
     }
-    li {
-      margin-bottom: 0.8rem;
+    #connect {
+      padding: 20px;
+      background-color: #fff;
+      text-align: center;
+      border-top: 1px solid #ddd;
     }
-    a {
-      color: #2b7a78;
+    #connect a {
+      color: #0077cc;
       text-decoration: none;
     }
-    a:hover {
+    #connect a:hover {
       text-decoration: underline;
     }
-    .note {
-      background: #def2f1;
-      padding: 1rem;
-      border-left: 4px solid #3aafa9;
-      margin-top: 1rem;
-      border-radius: 4px;
-    }
-    
-    .video-container { margin: 10px; width: 300px; height: 200px; } iframe { width: 100%; height: 100%; border: none; } 
-    
-    main { padding: 20px; display: flex; flex-wrap: wrap; justify-content: center; }
-
-    
   </style>
 </head>
 <body>
+
   <header>
-    <h1>Инвестиции — это просто 😊</h1>
-    <p>Анализ акций на примере Microsoft (MSFT)</p>
+    <header>
+  <img src="https://github.com/PavloLomakin/tracker/blob/main/image.png?raw=true"
+       alt="Pavlo Lomakin" style="width:160px; height:160px; border-radius:50%; object-fit:cover; margin-bottom:15px;">
+    <h1>Pavlo Lomakin</h1>
+    <p>Акции с Павлом Ломакиным</p>
   </header>
 
-  <section>
-    <h2>Что нужно смотреть 🔍:</h2>
-    <ul>
-      <li>📈 <strong>ROE</strong> ≥ 12% за последние 5 лет — <a href="https://stockanalysis.com/stocks/msft/financials/ratios/" target="_blank">смотреть здесь</a></li>
-      <li>💰 <strong>Debt / Equity Ratio</strong> &lt; 1.5, желательно &lt; 1 — <a href="https://stockanalysis.com/stocks/msft/financials/ratios/" target="_blank">смотреть здесь</a></li>
-      <li>📊 Рост <strong>Revenue</strong> за 5 лет — <a href="https://stockanalysis.com/stocks/msft/financials/" target="_blank">смотреть здесь</a></li>
-      <li>🛡️ Наличие <strong>широкого экономического рва</strong> — спросите ChatGPT</li>
-      <li>🧮 Оценка <strong>Intrinsic Value</strong> — <a href="https://pavlolomakin.github.io/IV-calculator/" target="_blank">калькулятор</a></li>
-    </ul>
+  <section class="links">
+    <a href="https://stockanalysis.com/?ref=pavlo" target="_blank">1. Сайт для Анализа Акций</a>
+    <a href="https://www.patreon.com/PavloLomakin" target="_blank">2. Доступ к закрытому Discord-сообществу</a>
+    <a href="https://www.dataroma.com/m/home.php" target="_blank">3. Куда инвестируют Супер-Инвесторы</a>
+    <a href="https://pavlolomakin.github.io/IV-calculator/" target="_blank">4. Калькулятор Внутренней Стоимости</a>
+    <a href="https://www.youtube.com/@PavloLomakin" target="_blank">5. Мой YouTube канал о Инвестициях</a>
+  </section>
 
-    <h2>Как пользоваться калькулятором Intrinsic Value 🧠:</h2>
-    <ul>
-      <li>📈 <strong>Estimated Annual Growth Rate (%)</strong> — <a href="https://stockanalysis.com/stocks/msft/forecast/" target="_blank">EPS Growth 2026–2027</a></li>
-      <li>📐 <strong>Expected Future P/E Ratio</strong> — <a href="https://stockanalysis.com/stocks/msft/financials/ratios/" target="_blank">исторические значения</a> с поправками</li>
-      <li>🎯 <strong>Discount Rate (%)</strong> — обычно 10% (диапазон 8–12%)</li>
-    </ul>
-
-    <div class="note">
-      <strong>Поправки к P/E:</strong> если прогноз по EPS Growth выше исторического — можно использовать средний исторический P/E. Если ниже — следует занизить.
-    </div>
-
-    <h2>Фундамент для успешных инвестиций 🏗️:</h2>
-    <ul>
-      <li>📆 DCA — 4 покупки каждую неделю при открытии позиции</li>
-      <li>🧺 Диверсификация — 12–18 акций</li>
-      <li>Выбор акций США или стран с рейтингом AAA — <a href="https://en.wikipedia.org/wiki/List_of_countries_by_credit_rating" target="_blank">проверить рейтинг стран</a></li>
-      <li>⏳ Горизонт инвестиций — минимум 3 года</li>
-      <li>🚫 Не покупать после резкого роста акции</li>
-    </ul>
-    <section id="connect" style="padding: 20px; background-color: #fff; text-align: center;">
-    <h4>🧵 Делюсь мыслями и идеями в Threads <a href="https://www.threads.net/@pavlo.lomakin" target="_blank">threads.net/@pavlo.lomakin</a></h4> 
-    <h4>Поддержать:  ☕️<a href="https://ko-fi.com/pavlo_lomakin" target="_blank">Угостить чашкой кофе   </a> •
-        <a href="https://www.patreon.com/PavloLomakin" target="_blank">Patreon</a> •
-        <a href="https://www.paypal.me/pavlomakin?country.x=CA&locale.x=en_US" target="_blank">PayPal   </a></h4>
+  <section id="connect">
+    <h4>Поддержать: • <a href="https://ko-fi.com/pavlo_lomakin" target="_blank">Угостить чашкой кофе</a> •
+      <a href="https://www.patreon.com/PavloLomakin" target="_blank">Patreon</a> •
+      <a href="https://www.paypal.me/pavlomakin?country.x=CA&amp;locale.x=en_US" target="_blank">PayPal</a>
+    </h4>
 
     <h4>✉ Сотрудничество и предложения Email: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
-</section>
-<main id="videoSection"> <!-- Videos will be dynamically added here --> </main>
-<footer>
-    <p>© 2025 Акции с Павлом Ломакиным</p>
-</footer>
-<script>
-    const videoIds = [
-        "ha6twKBNQuE",
-        "e6ZS2lvzwpE"
-    ]; // Replace with actual video IDs from your channel
-
-    const videoSection = document.getElementById("videoSection");
-
-    videoIds.forEach(id => {
-        const container = document.createElement("div");
-        container.className = "video-container";
-
-        const iframe = document.createElement("iframe");
-        iframe.src = "https://www.youtube.com/embed/" + id;
-        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-        iframe.allowFullscreen = true;
-
-        container.appendChild(iframe);
-        videoSection.appendChild(container);
-    });
-</script>
   </section>
+
 </body>
 </html>
