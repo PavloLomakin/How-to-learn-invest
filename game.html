@@ -3,16 +3,25 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Смайлик и доллары</title>
+<title>Смайлик и доллары — с Leaderboard</title>
 <style>
-  html,body { height:100%; margin:0; background:#111; color:#fff; font-family:Arial,Helvetica,sans-serif; }
+  html,body { height:100%; margin:0; background:#0b1220; color:#fff; font-family:Arial,Helvetica,sans-serif; -webkit-font-smoothing:antialiased; }
   #gameWrap { display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px; }
-  canvas { background: linear-gradient(180deg,#0b3 #013); border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.6); }
+  canvas { background: linear-gradient(180deg,#052 0%, #013 100%); border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.6); max-width:100%; }
   .hud { display:flex; gap:12px; align-items:center; font-weight:700; }
-  .btn { background:#fff1; border:1px solid #fff3; color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; }
-  .btn:hover { background:#fff2; }
-  .info { font-size:14px; opacity:.9; }
-  @media (max-width:600px){ canvas{ width:320px; height:480px; } }
+  .btn { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; }
+  .btn:hover { background:rgba(255,255,255,0.09); }
+  .info { font-size:14px; opacity:.95; }
+  #leaderboardModal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:50; visibility:hidden; opacity:0; transition:opacity .18s ease, visibility .18s; }
+  #leaderboardModal.show { visibility:visible; opacity:1; }
+  .modal { background:linear-gradient(180deg,#0f1724,#07101a); border-radius:12px; padding:18px; width:min(720px,94%); color:#fff; box-shadow:0 12px 40px rgba(0,0,0,.7); }
+  .modal h2 { margin:0 0 8px 0; font-size:20px; }
+  .modal .row { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+  .modal input[type="text"]{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02); color:#fff; min-width:160px; }
+  .modal .leaderList { max-height:320px; overflow:auto; margin-top:8px; border-radius:8px; background:rgba(255,255,255,0.02); padding:8px; }
+  .leaderItem { display:flex; justify-content:space-between; padding:6px 8px; border-bottom:1px dashed rgba(255,255,255,0.03); font-size:14px; }
+  .small { font-size:13px; opacity:.9; }
+  @media (max-width:600px){ canvas{ width:320px; height:480px; } .modal{ padding:12px; } }
 </style>
 </head>
 <body>
@@ -20,36 +29,104 @@
   <div class="hud">
     <div class="info">Счёт: <span id="score">0</span></div>
     <div class="info">Жизни: <span id="lives">3</span></div>
+    <div class="info small">Время: <span id="time">0.0</span> с</div>
     <button id="restart" class="btn">Перезапустить</button>
+    <button id="showBoard" class="btn">Leaderboard</button>
   </div>
-  <canvas id="c" width="640" height="480"></canvas>
+  <canvas id="c" width="800" height="520"></canvas>
   <div class="info">Управление: стрелки или WASD. Собирай зелёные доллары, избегай красных.</div>
 </div>
 
+<!-- Модальное окно Leaderboard -->
+<div id="leaderboardModal" role="dialog" aria-modal="true">
+  <div class="modal" id="modalContent">
+    <h2>Leaderboard — Топ 20</h2>
+    <div class="row">
+      <div class="small">Твой счёт: <strong id="finalScore">0</strong></div>
+      <input id="playerName" type="text" placeholder="Введи имя (макс 20 символов)" maxlength="20" />
+      <button id="saveScore" class="btn">Сохранить</button>
+      <button id="closeBoard" class="btn">Закрыть</button>
+    </div>
+    <div class="row small">Лучшие результаты сохраняются локально в браузере. Топ-20 сортируется по убыванию очков.</div>
+    <div class="leaderList" id="leaderList" aria-live="polite"></div>
+  </div>
+</div>
+
 <script>
-/* Простая игра: игрок-смайлик собирает зелёные доллары и избегает красных.
-   Управление стрелками или WASD. */
+/* Игра: игрок-смайлик собирает зелёные доллары и избегает красных.
+   Добавлено: ускорение игрока и предметов со временем, Leaderboard (localStorage). */
+
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('score');
 const livesEl = document.getElementById('lives');
+const timeEl = document.getElementById('time');
 const restartBtn = document.getElementById('restart');
+const showBoardBtn = document.getElementById('showBoard');
+
+const modal = document.getElementById('leaderboardModal');
+const leaderListEl = document.getElementById('leaderList');
+const finalScoreEl = document.getElementById('finalScore');
+const playerNameInput = document.getElementById('playerName');
+const saveScoreBtn = document.getElementById('saveScore');
+const closeBoardBtn = document.getElementById('closeBoard');
 
 let W = canvas.width, H = canvas.height;
-function resize() { W = canvas.width = canvas.clientWidth || 640; H = canvas.height = canvas.clientHeight || 480; }
+function resize() { W = canvas.width = canvas.clientWidth || 800; H = canvas.height = canvas.clientHeight || 520; }
 window.addEventListener('resize', resize);
 resize();
 
 const playerEmoji = '😃';
 const dollarEmoji = '💵';
-const player = { x: W/2, y: H/2, r: 22, speed: 220, vx:0, vy:0 };
+const player = { x: W/2, y: H/2, r: 22, baseSpeed: 180, speed: 180, vx:0, vy:0 };
 let keys = {};
-let items = []; // {x,y,type, vx,vy, r}
+let items = []; // {x,y,type,vx,vy,r}
 let score = 0;
 let lives = 3;
 let lastTime = 0;
 let spawnTimer = 0;
 let gameOver = false;
+let elapsed = 0; // время игры в секундах
+
+// Leaderboard
+const STORAGE_KEY = 'smiley_leaderboard_v1';
+function loadLeaderboard(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return [];
+    return JSON.parse(raw);
+  } catch(e){ return []; }
+}
+function saveLeaderboard(list){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch(e){}
+}
+function addScoreToLeaderboard(name, scoreVal){
+  const list = loadLeaderboard();
+  list.push({name: name || 'Игрок', score: scoreVal, date: new Date().toISOString()});
+  list.sort((a,b)=> b.score - a.score || new Date(b.date) - new Date(a.date));
+  const top = list.slice(0,20);
+  saveLeaderboard(top);
+  return top;
+}
+function renderLeaderboard(){
+  const list = loadLeaderboard();
+  leaderListEl.innerHTML = '';
+  if(list.length === 0){
+    leaderListEl.innerHTML = '<div class="small">Пока нет результатов</div>';
+    return;
+  }
+  list.forEach((it, idx) => {
+    const div = document.createElement('div');
+    div.className = 'leaderItem';
+    const name = document.createElement('div');
+    name.textContent = `${idx+1}. ${it.name}`;
+    const score = document.createElement('div');
+    score.textContent = it.score;
+    div.appendChild(name);
+    div.appendChild(score);
+    leaderListEl.appendChild(div);
+  });
+}
 
 // Управление
 window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
@@ -57,14 +134,33 @@ window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
 // Перезапуск
 restartBtn.addEventListener('click', init);
+showBoardBtn.addEventListener('click', ()=> { finalScoreEl.textContent = score; playerNameInput.value = ''; renderLeaderboard(); openModal(); });
+
+// Модалка
+function openModal(){ modal.classList.add('show'); playerNameInput.focus(); }
+function closeModal(){ modal.classList.remove('show'); }
+closeBoardBtn.addEventListener('click', ()=> closeModal());
+saveScoreBtn.addEventListener('click', ()=>{
+  const name = playerNameInput.value.trim().slice(0,20) || 'Игрок';
+  const top = addScoreToLeaderboard(name, score);
+  renderLeaderboard();
+  finalScoreEl.textContent = score;
+  // показать обновлённый список и заблокировать повторное сохранение
+  saveScoreBtn.disabled = true;
+  playerNameInput.disabled = true;
+});
 
 // Инициализация
 function init(){
   score = 0; lives = 3; items = []; gameOver = false;
   player.x = W/2; player.y = H/2;
-  scoreEl.textContent = score; livesEl.textContent = lives;
+  player.speed = player.baseSpeed;
+  elapsed = 0;
+  scoreEl.textContent = score; livesEl.textContent = lives; timeEl.textContent = '0.0';
   lastTime = performance.now();
   spawnTimer = 0;
+  saveScoreBtn.disabled = false;
+  playerNameInput.disabled = false;
   requestAnimationFrame(loop);
 }
 
@@ -72,22 +168,32 @@ function init(){
 function spawnItem(){
   const edge = Math.floor(Math.random()*4);
   let x = Math.random()*W, y = Math.random()*H;
-  if(edge===0){ x = -30; y = Math.random()*H; }
-  if(edge===1){ x = W+30; y = Math.random()*H; }
-  if(edge===2){ x = Math.random()*W; y = -30; }
-  if(edge===3){ x = Math.random()*W; y = H+30; }
+  if(edge===0){ x = -40; y = Math.random()*H; }
+  if(edge===1){ x = W+40; y = Math.random()*H; }
+  if(edge===2){ x = Math.random()*W; y = -40; }
+  if(edge===3){ x = Math.random()*W; y = H+40; }
+  // направляем предмет в сторону игрока с небольшим разбросом
   const angle = Math.atan2(player.y - y, player.x - x) + (Math.random()-0.5)*0.8;
-  const speed = 40 + Math.random()*80;
+  // скорость предметов растёт со временем
+  const baseSpeed = 50 + Math.min(220, elapsed * 8);
+  const speed = baseSpeed + Math.random()*80;
   const vx = Math.cos(angle)*speed;
   const vy = Math.sin(angle)*speed;
-  const type = Math.random() < 0.7 ? 'green' : 'red'; // чаще зелёные
-  const r = 18 + Math.random()*8;
+  // вероятность красного растёт со временем
+  const redProb = Math.min(0.45, 0.12 + elapsed * 0.01);
+  const type = Math.random() < redProb ? 'red' : 'green';
+  const r = 14 + Math.random()*10;
   items.push({x,y,vx,vy,type,r});
 }
 
 // Обновление логики
 function update(dt){
   if(gameOver) return;
+  elapsed += dt;
+  // ускорение игрока: линейное увеличение скорости
+  const accel = 12; // насколько быстро растёт скорость игрока
+  player.speed = player.baseSpeed + elapsed * accel;
+
   // движение игрока
   let ax=0, ay=0;
   if(keys['arrowleft']||keys['a']) ax = -1;
@@ -103,11 +209,16 @@ function update(dt){
   player.x = Math.max(player.r, Math.min(W-player.r, player.x));
   player.y = Math.max(player.r, Math.min(H-player.r, player.y));
 
-  // спавн
+  // спавн: частота увеличивается со временем (интервал уменьшается)
   spawnTimer += dt;
-  if(spawnTimer > 0.6){
+  const minInterval = 0.18;
+  const maxInterval = 0.9;
+  const interval = Math.max(minInterval, maxInterval - Math.min(0.7, elapsed * 0.03));
+  if(spawnTimer > interval){
     spawnTimer = 0;
-    spawnItem();
+    // спавним 1-2 предмета в зависимости от времени
+    const count = elapsed > 25 ? (Math.random() < 0.4 ? 2 : 1) : 1;
+    for(let i=0;i<count;i++) spawnItem();
   }
 
   // обновление предметов
@@ -115,26 +226,34 @@ function update(dt){
     const it = items[i];
     it.x += it.vx * dt;
     it.y += it.vy * dt;
-    // лёгкое дрейфование
-    it.vx *= 0.995; it.vy *= 0.995;
+    // лёгкое замедление по времени
+    it.vx *= 0.998; it.vy *= 0.998;
     // удалять если далеко
-    if(it.x < -100 || it.x > W+100 || it.y < -100 || it.y > H+100) items.splice(i,1);
+    if(it.x < -120 || it.x > W+120 || it.y < -120 || it.y > H+120) items.splice(i,1);
     // столкновение с игроком
     const dx = it.x - player.x, dy = it.y - player.y;
     const dist = Math.hypot(dx,dy);
     if(dist < it.r + player.r*0.6){
       if(it.type === 'green'){
-        score += 10;
+        // очки зависят от текущего множителя времени
+        const bonus = 10 + Math.floor(elapsed/10);
+        score += bonus;
         scoreEl.textContent = score;
       } else {
         lives -= 1;
         livesEl.textContent = lives;
-        // краткая инвульнерность: отталкиваем игрока
+        // отталкивание игрока
         player.x -= dx*0.6; player.y -= dy*0.6;
-        // эффект: если жизни закончились — конец игры
+        // краткая инвульнерность: удаляем ближайшие красные на короткое время
+        // (упрощённая реализация: ничего не делаем, просто эффект)
         if(lives <= 0){
           gameOver = true;
-          setTimeout(()=> alert('Игра окончена. Счёт: ' + score), 50);
+          // показать модалку Leaderboard с задержкой, чтобы отрисовалось окончание
+          setTimeout(()=> {
+            finalScoreEl.textContent = score;
+            renderLeaderboard();
+            openModal();
+          }, 120);
         }
       }
       items.splice(i,1);
@@ -146,10 +265,10 @@ function update(dt){
 function draw(){
   // фон
   ctx.clearRect(0,0,W,H);
-  // лёгкий градиент
+  // градиент
   const g = ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'rgba(0,0,0,0.15)');
-  g.addColorStop(1,'rgba(0,0,0,0.35)');
+  g.addColorStop(0,'rgba(0,0,0,0.12)');
+  g.addColorStop(1,'rgba(0,0,0,0.28)');
   ctx.fillStyle = g;
   ctx.fillRect(0,0,W,H);
 
@@ -158,7 +277,7 @@ function draw(){
     // цветной круг позади эмодзи
     ctx.beginPath();
     ctx.fillStyle = it.type === 'green' ? '#2ecc71' : '#e74c3c';
-    ctx.globalAlpha = 0.9;
+    ctx.globalAlpha = 0.95;
     ctx.arc(it.x, it.y, it.r+6, 0, Math.PI*2);
     ctx.fill();
     ctx.globalAlpha = 1;
@@ -181,13 +300,14 @@ function draw(){
 
   // если игра окончена — затемнение и текст
   if(gameOver){
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.fillRect(0,0,W,H);
     ctx.fillStyle = '#fff';
-    ctx.font = '36px Arial';
+    ctx.font = '34px Arial';
+    ctx.textAlign = 'center';
     ctx.fillText('Игра окончена', W/2, H/2 - 20);
-    ctx.font = '20px Arial';
-    ctx.fillText('Нажми Перезапустить', W/2, H/2 + 18);
+    ctx.font = '18px Arial';
+    ctx.fillText('Открой Leaderboard, чтобы сохранить результат', W/2, H/2 + 12);
   }
 }
 
@@ -197,11 +317,35 @@ function loop(ts){
   lastTime = ts;
   update(dt);
   draw();
+  timeEl.textContent = elapsed.toFixed(1);
   if(!gameOver) requestAnimationFrame(loop);
 }
 
-// Запуск
+// Инициализация при загрузке
 init();
+
+// Закрытие модалки по клику вне контента
+modal.addEventListener('click', (e)=>{
+  if(e.target === modal) closeModal();
+});
+
+// Быстрая клавиша Enter для сохранения в модалке
+playerNameInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') saveScoreBtn.click();
+});
+
+// Предзаполнить лидерборд при первом запуске
+if(loadLeaderboard().length === 0){
+  // добавить демонстрационные записи, не более 6
+  const demo = [
+    {name:'Alex', score:420},
+    {name:'Mira', score:360},
+    {name:'Sam', score:300},
+    {name:'Lena', score:260},
+    {name:'Ivan', score:220}
+  ];
+  saveLeaderboard(demo);
+}
 </script>
 </body>
 </html>
