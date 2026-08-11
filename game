@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Смайлик и доллары</title>
+<style>
+  html,body { height:100%; margin:0; background:#111; color:#fff; font-family:Arial,Helvetica,sans-serif; }
+  #gameWrap { display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px; }
+  canvas { background: linear-gradient(180deg,#0b3 #013); border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.6); }
+  .hud { display:flex; gap:12px; align-items:center; font-weight:700; }
+  .btn { background:#fff1; border:1px solid #fff3; color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; }
+  .btn:hover { background:#fff2; }
+  .info { font-size:14px; opacity:.9; }
+  @media (max-width:600px){ canvas{ width:320px; height:480px; } }
+</style>
+</head>
+<body>
+<div id="gameWrap">
+  <div class="hud">
+    <div class="info">Счёт: <span id="score">0</span></div>
+    <div class="info">Жизни: <span id="lives">3</span></div>
+    <button id="restart" class="btn">Перезапустить</button>
+  </div>
+  <canvas id="c" width="640" height="480"></canvas>
+  <div class="info">Управление: стрелки или WASD. Собирай зелёные доллары, избегай красных.</div>
+</div>
+
+<script>
+/* Простая игра: игрок-смайлик собирает зелёные доллары и избегает красных.
+   Управление стрелками или WASD. */
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const restartBtn = document.getElementById('restart');
+
+let W = canvas.width, H = canvas.height;
+function resize() { W = canvas.width = canvas.clientWidth || 640; H = canvas.height = canvas.clientHeight || 480; }
+window.addEventListener('resize', resize);
+resize();
+
+const playerEmoji = '😃';
+const dollarEmoji = '💵';
+const player = { x: W/2, y: H/2, r: 22, speed: 220, vx:0, vy:0 };
+let keys = {};
+let items = []; // {x,y,type, vx,vy, r}
+let score = 0;
+let lives = 3;
+let lastTime = 0;
+let spawnTimer = 0;
+let gameOver = false;
+
+// Управление
+window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// Перезапуск
+restartBtn.addEventListener('click', init);
+
+// Инициализация
+function init(){
+  score = 0; lives = 3; items = []; gameOver = false;
+  player.x = W/2; player.y = H/2;
+  scoreEl.textContent = score; livesEl.textContent = lives;
+  lastTime = performance.now();
+  spawnTimer = 0;
+  requestAnimationFrame(loop);
+}
+
+// Спавн предметов: зелёные и красные доллары
+function spawnItem(){
+  const edge = Math.floor(Math.random()*4);
+  let x = Math.random()*W, y = Math.random()*H;
+  if(edge===0){ x = -30; y = Math.random()*H; }
+  if(edge===1){ x = W+30; y = Math.random()*H; }
+  if(edge===2){ x = Math.random()*W; y = -30; }
+  if(edge===3){ x = Math.random()*W; y = H+30; }
+  const angle = Math.atan2(player.y - y, player.x - x) + (Math.random()-0.5)*0.8;
+  const speed = 40 + Math.random()*80;
+  const vx = Math.cos(angle)*speed;
+  const vy = Math.sin(angle)*speed;
+  const type = Math.random() < 0.7 ? 'green' : 'red'; // чаще зелёные
+  const r = 18 + Math.random()*8;
+  items.push({x,y,vx,vy,type,r});
+}
+
+// Обновление логики
+function update(dt){
+  if(gameOver) return;
+  // движение игрока
+  let ax=0, ay=0;
+  if(keys['arrowleft']||keys['a']) ax = -1;
+  if(keys['arrowright']||keys['d']) ax = 1;
+  if(keys['arrowup']||keys['w']) ay = -1;
+  if(keys['arrowdown']||keys['s']) ay = 1;
+  const len = Math.hypot(ax,ay) || 1;
+  player.vx = (ax/len) * player.speed;
+  player.vy = (ay/len) * player.speed;
+  player.x += player.vx * dt;
+  player.y += player.vy * dt;
+  // границы
+  player.x = Math.max(player.r, Math.min(W-player.r, player.x));
+  player.y = Math.max(player.r, Math.min(H-player.r, player.y));
+
+  // спавн
+  spawnTimer += dt;
+  if(spawnTimer > 0.6){
+    spawnTimer = 0;
+    spawnItem();
+  }
+
+  // обновление предметов
+  for(let i = items.length-1; i>=0; i--){
+    const it = items[i];
+    it.x += it.vx * dt;
+    it.y += it.vy * dt;
+    // лёгкое дрейфование
+    it.vx *= 0.995; it.vy *= 0.995;
+    // удалять если далеко
+    if(it.x < -100 || it.x > W+100 || it.y < -100 || it.y > H+100) items.splice(i,1);
+    // столкновение с игроком
+    const dx = it.x - player.x, dy = it.y - player.y;
+    const dist = Math.hypot(dx,dy);
+    if(dist < it.r + player.r*0.6){
+      if(it.type === 'green'){
+        score += 10;
+        scoreEl.textContent = score;
+      } else {
+        lives -= 1;
+        livesEl.textContent = lives;
+        // краткая инвульнерность: отталкиваем игрока
+        player.x -= dx*0.6; player.y -= dy*0.6;
+        // эффект: если жизни закончились — конец игры
+        if(lives <= 0){
+          gameOver = true;
+          setTimeout(()=> alert('Игра окончена. Счёт: ' + score), 50);
+        }
+      }
+      items.splice(i,1);
+    }
+  }
+}
+
+// Рисование
+function draw(){
+  // фон
+  ctx.clearRect(0,0,W,H);
+  // лёгкий градиент
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'rgba(0,0,0,0.15)');
+  g.addColorStop(1,'rgba(0,0,0,0.35)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  // предметы
+  for(const it of items){
+    // цветной круг позади эмодзи
+    ctx.beginPath();
+    ctx.fillStyle = it.type === 'green' ? '#2ecc71' : '#e74c3c';
+    ctx.globalAlpha = 0.9;
+    ctx.arc(it.x, it.y, it.r+6, 0, Math.PI*2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    // доллар-эмодзи
+    ctx.font = (it.r+6) + 'px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(dollarEmoji, it.x, it.y + 2);
+  }
+
+  // игрок: круг + смайлик
+  ctx.beginPath();
+  ctx.fillStyle = '#ffd54f';
+  ctx.arc(player.x, player.y, player.r+8, 0, Math.PI*2);
+  ctx.fill();
+  ctx.font = (player.r+8) + 'px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(playerEmoji, player.x, player.y + 2);
+
+  // если игра окончена — затемнение и текст
+  if(gameOver){
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#fff';
+    ctx.font = '36px Arial';
+    ctx.fillText('Игра окончена', W/2, H/2 - 20);
+    ctx.font = '20px Arial';
+    ctx.fillText('Нажми Перезапустить', W/2, H/2 + 18);
+  }
+}
+
+// Главный цикл
+function loop(ts){
+  const dt = Math.min(0.05, (ts - lastTime) / 1000);
+  lastTime = ts;
+  update(dt);
+  draw();
+  if(!gameOver) requestAnimationFrame(loop);
+}
+
+// Запуск
+init();
+</script>
+</body>
+</html>
