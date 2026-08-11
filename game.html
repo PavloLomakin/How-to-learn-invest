@@ -79,7 +79,21 @@ const playerNameInput = document.getElementById('playerName');
 const saveScoreBtn = document.getElementById('saveScore');
 const closeBoardBtn = document.getElementById('closeBoard');
 
-const buffFileInput = document.getElementById('buffFile');
+// Прямой загрузчик изображения по URL
+let buffImage = new Image();
+let buffImageLoaded = false;
+
+buffImage.crossOrigin = 'anonymous'; // важно для рисования в canvas без "taint"
+buffImage.onload = () => {
+  buffImageLoaded = true;
+  fileLabelText.textContent = 'Изображение загружено с URL';
+};
+buffImage.onerror = () => {
+  buffImageLoaded = false;
+  fileLabelText.textContent = 'Ошибка загрузки по URL';
+};
+buffImage.src = 'https://pavlolomakin.github.io/Pavlo.Lomakin/image.png';
+
 const fileLabelText = document.getElementById('fileLabelText');
 
 let W = canvas.width, H = canvas.height;
