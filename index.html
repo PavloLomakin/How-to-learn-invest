@@ -93,6 +93,80 @@
     </h4>
     <h4>✉ Сотрудничество и предложения: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
   </section>
+<script>
+  let clicks = 0;
+  const img = document.querySelector('header img');
+
+  img.addEventListener('click', () => {
+    clicks++;
+
+    if (clicks === 5) {
+      // Пасхалка
+      const egg = document.createElement('div');
+      egg.style.position = 'fixed';
+      egg.style.bottom = '20px';
+      egg.style.right = '20px';
+      egg.style.padding = '15px 20px';
+      egg.style.background = '#222';
+      egg.style.border = '1px solid #444';
+      egg.style.borderRadius = '8px';
+      egg.style.color = '#4da3ff';
+      egg.style.fontSize = '1.1em';
+      egg.style.boxShadow = '0 0 12px rgba(0,150,255,0.6)';
+      egg.style.zIndex = '9999';
+      egg.style.animation = 'fadeIn 0.6s ease';
+      egg.innerHTML = "🐂 Bull Market Mode Activated";
+      document.body.appendChild(egg);
+
+      setTimeout(() => {
+        egg.style.animation = 'fadeOut 0.6s ease';
+        setTimeout(() => egg.remove(), 600);
+      }, 3000);
+
+      // Секретная кнопка
+      const secret = document.createElement('a');
+      secret.href = "https://pavlolomakin.github.io/tracker/";
+      secret.target = "_blank";
+      secret.textContent = "Секретная версия полу-автоматизированного Чек-Листа для Анализа Акций";
+
+      secret.style.display = "block";
+      secret.style.textAlign = "center";
+      secret.style.margin = "20px auto";
+      secret.style.fontSize = "0.75em";
+      secret.style.opacity = "0.15";
+      secret.style.transition = "opacity 0.3s";
+      secret.style.color = "#4da3ff";
+      secret.style.textDecoration = "none";
+
+      secret.onmouseover = () => secret.style.opacity = "0.5";
+      secret.onmouseout = () => secret.style.opacity = "0.15";
+
+      document.body.appendChild(secret);
+
+      // Авто-удаление кнопки через 5 секунд
+      setTimeout(() => {
+        secret.style.animation = "fadeOut 0.6s ease";
+        setTimeout(() => secret.remove(), 600);
+      }, 5000);
+
+      clicks = 0;
+    }
+  });
+
+  // Анимации
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(10px); }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
 
 </body>
 </html>
