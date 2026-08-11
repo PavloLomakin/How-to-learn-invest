@@ -95,12 +95,51 @@
     <h4>✉ Сотрудничество и предложения: <a href="mailto:talkostocks@gmail.com">talkostocks@gmail.com</a></h4>
   </section>
 
-  <!-- Скрытая кнопка внизу страницы -->
-  <div id="hidden-link">
-    <a href="https://pavlolomakin.github.io/Pavlo.Lomakin/game.html" target="_blank" rel="noopener">
-      Кроличья нора
-    </a>
-  </div>
+ <!-- Скрытая кнопка внизу страницы -->
+<div id="hidden-link">
+  <a href="https://pavlolomakin.github.io/Pavlo.Lomakin/game.html" target="_blank">
+    Кроличья нора
+  </a>
+</div>
+
+<style>
+  #hidden-link {
+    position: fixed;
+    bottom: 3px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none; /* невидима и некликабельна */
+  }
+
+  #hidden-link:hover {
+    opacity: 0.6;
+  }
+
+  #hidden-link a {
+    color: #4da3ff;
+    font-size: 0.7em;
+    text-decoration: none;
+    pointer-events: auto; /* становится кликабельной только при наведении */
+  }
+
+  /* зона наведения — тонкая полоска */
+  #hidden-link::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 8px; /* почти невидимая зона */
+    cursor: pointer;
+  }
+
+  #hidden-link:hover {
+    opacity: 0.6;
+  }
+</style>
 
   <script>
     (function () {
