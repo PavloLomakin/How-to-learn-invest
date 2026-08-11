@@ -268,6 +268,105 @@
     // Чтобы пасхалка не повторялась бесконечно
     secretInput = "";
   }
+
+<script>
+  // Пасхалка: вращение аватарки → цитаты Баффета или Мангерa
+  const avatar = document.querySelector("header img");
+
+  let isRotating = false;
+  let rotationStartTime = null;
+  let lastAngle = null;
+
+  const buffettQuotes = [
+    "«Цена - это то, что вы платите. Стоимость - это то, что вы получаете.» - Уоррен Баффет",
+    "«Лучшее время держать акции - навсегда.» - Уоррен Баффет",
+    "«Не пытайтесь предсказывать рынок - занимайтесь бизнесом.» - Уоррен Баффет",
+    "«Риск возникает от незнания того, что вы делаете.» - Уоррен Баффет"
+  ];
+
+  const mungerQuotes = [
+    "«Большие деньги делаются не в покупке и продаже, а в ожидании.» - Чарли Мангер",
+    "«Каждый день старайтесь стать умнее, чем вы были вчера.» - Чарли Мангер",
+    "«Избегайте глупости - это проще, чем искать гениальность.» - Чарли Мангер",
+    "«Терпение — ключевой навык инвестора.» - Чарли Мангер"
+  ];
+
+  avatar.style.transition = "transform 0.05s linear";
+
+  avatar.addEventListener("mousedown", () => {
+    isRotating = true;
+    rotationStartTime = null;
+    lastAngle = null;
+  });
+
+  document.addEventListener("mouseup", () => {
+    isRotating = false;
+    avatar.style.transform = "rotate(0deg)";
+  });
+
+  avatar.addEventListener("mousemove", (e) => {
+    if (!isRotating) return;
+
+    const rect = avatar.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const dx = e.clientX - centerX;
+    const dy = e.clientY - centerY;
+
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    avatar.style.transform = `rotate(${angle}deg)`;
+
+    if (lastAngle !== null) {
+      if (rotationStartTime === null) {
+        rotationStartTime = Date.now();
+      } else {
+        const elapsed = Date.now() - rotationStartTime;
+
+        if (elapsed >= 3000) {
+          if (angle < 0) {
+            showQuote(buffettQuotes);
+          } else {
+            showQuote(mungerQuotes);
+          }
+
+          isRotating = false;
+          avatar.style.transform = "rotate(0deg)";
+        }
+      }
+    }
+
+    lastAngle = angle;
+  });
+
+  function showQuote(quotes) {
+    const quote = quotes[Math.floor(Math.random() * quotes.length)];
+
+    const card = document.createElement("div");
+    card.textContent = quote;
+    card.style.position = "fixed";
+    card.style.bottom = "20px";
+    card.style.left = "50%";
+    card.style.transform = "translateX(-50%)";
+    card.style.padding = "15px 20px";
+    card.style.background = "#222";
+    card.style.color = "#4da3ff";
+    card.style.border = "1px solid #444";
+    card.style.borderRadius = "8px";
+    card.style.boxShadow = "0 0 12px rgba(0,150,255,0.6)";
+    card.style.fontSize = "1em";
+    card.style.zIndex = "99999";
+    card.style.animation = "fadeIn 0.5s ease";
+
+    document.body.appendChild(card);
+
+    setTimeout(() => {
+      card.style.animation = "fadeOut 0.5s ease";
+      setTimeout(() => card.remove(), 500);
+    }, 4000);
+  }
+  
 </script>
 
 </body>
