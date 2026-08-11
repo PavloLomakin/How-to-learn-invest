@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Смайлик и доллары — бонус Уоррена Баффета</title>
+<title>Смайлик и доллары — с изображением Баффета</title>
 <style>
   html,body { height:100%; margin:0; background:#0b1220; color:#fff; font-family:Arial,Helvetica,sans-serif; -webkit-font-smoothing:antialiased; }
   #gameWrap { display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px; }
   canvas { background: linear-gradient(180deg,#052 0%, #013 100%); border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.6); max-width:100%; touch-action:none; }
-  .hud { display:flex; gap:12px; align-items:center; font-weight:700; flex-wrap:wrap; }
+  .hud { display:flex; gap:8px; align-items:center; font-weight:700; flex-wrap:wrap; }
   .btn { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; }
   .btn:hover { background:rgba(255,255,255,0.09); }
   .info { font-size:14px; opacity:.95; }
+  #fileLabel { display:inline-flex; gap:8px; align-items:center; }
+  input[type="file"]{ display:none; }
   #leaderboardModal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:50; visibility:hidden; opacity:0; transition:opacity .18s ease, visibility .18s; }
   #leaderboardModal.show { visibility:visible; opacity:1; }
   .modal { background:linear-gradient(180deg,#0f1724,#07101a); border-radius:12px; padding:18px; width:min(720px,94%); color:#fff; box-shadow:0 12px 40px rgba(0,0,0,.7); }
@@ -33,9 +35,13 @@
     <div class="info small">Бессмертие: <span id="invTimer">0.0</span> с</div>
     <button id="restart" class="btn">Перезапустить</button>
     <button id="showBoard" class="btn">Leaderboard</button>
+    <label id="fileLabel" class="btn" title="Загрузить изображение для бонуса">
+      <span id="fileLabelText">Загрузить изображение</span>
+      <input id="buffFile" type="file" accept="image/*" />
+    </label>
   </div>
   <canvas id="c" width="800" height="520"></canvas>
-  <div class="info">Управление: стрелки или WASD; на мобильных — касание. Лови смайлик Баффета для бессмертия.</div>
+  <div class="info">Управление: стрелки или WASD; на мобильных — касание. Лови бонусный смайлик для бессмертия.</div>
 </div>
 
 <!-- Модальное окно Leaderboard -->
@@ -48,19 +54,14 @@
       <button id="saveScore" class="btn">Сохранить</button>
       <button id="closeBoard" class="btn">Закрыть</button>
     </div>
-    <div class="row small">Лучшие результаты сохраняются!</div>
+    <div class="row small">Лучшие результаты сохраняются локально в браузере. Топ-20 сортируется по убыванию очков.</div>
     <div class="leaderList" id="leaderList" aria-live="polite"></div>
   </div>
 </div>
 
 <script>
-/* Полная игра с бонусом "Баффет" — бессмертие на 10 секунд при поимке.
-   Особенности:
-   - Каждые 30 секунд появляется специальный смайлик "Баффет" (type: 'buff').
-   - Поимка даёт invincible=true на 10 секунд; HUD показывает таймер.
-   - Во время бессмертия вокруг игрока рисуется зелёная рамка.
-   - Бонус исчезает через 12 секунд, если не пойман.
-   - Сохранён Leaderboard в localStorage. */
+/* Игра с возможностью загрузить своё изображение для бонусного смайлика.
+   Если изображение не загружено — используется эмодзи. */
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -78,6 +79,9 @@ const playerNameInput = document.getElementById('playerName');
 const saveScoreBtn = document.getElementById('saveScore');
 const closeBoardBtn = document.getElementById('closeBoard');
 
+const buffFileInput = document.getElementById('buffFile');
+const fileLabelText = document.getElementById('fileLabelText');
+
 let W = canvas.width, H = canvas.height;
 function resizeCanvasForDPR(){
   const ratio = Math.max(1, window.devicePixelRatio || 1);
@@ -94,7 +98,6 @@ resizeCanvasForDPR();
 
 const playerEmoji = '😃';
 const dollarEmoji = '💵';
-const buffEmoji = '🧓'; // специальный смайлик, обозначающий Баффета
 const player = { x: W/2, y: H/2, r: 22, baseSpeed: 180, speed: 180, vx:0, vy:0 };
 let keys = {};
 let items = []; // {x,y,type,vx,vy,r, spawnTime}
@@ -103,28 +106,19 @@ let lives = 3;
 let lastTime = 0;
 let spawnTimer = 0;
 let gameOver = false;
-let elapsed = 0; // время игры в секундах
+let elapsed = 0;
 
-// Баффет: спавн каждые 30 секунд
 let buffSpawnTimer = 0;
-const BUFF_SPAWN_INTERVAL = 30; // сек
-const BUFF_LIFETIME = 12; // сек, исчезает если не пойман
+const BUFF_SPAWN_INTERVAL = 30;
+const BUFF_LIFETIME = 12;
 let invincible = false;
 let invTimer = 0;
-const INV_DURATION = 10; // сек бессмертия
+const INV_DURATION = 10;
 
-// Leaderboard
+// Leaderboard (localStorage)
 const STORAGE_KEY = 'smiley_leaderboard_v1';
-function loadLeaderboard(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return [];
-    return JSON.parse(raw);
-  } catch(e){ return []; }
-}
-function saveLeaderboard(list){
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch(e){}
-}
+function loadLeaderboard(){ try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch(e){ return []; } }
+function saveLeaderboard(list){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch(e){} }
 function addScoreToLeaderboard(name, scoreVal){
   const list = loadLeaderboard();
   list.push({name: name || 'Игрок', score: scoreVal, date: new Date().toISOString()});
@@ -136,22 +130,37 @@ function addScoreToLeaderboard(name, scoreVal){
 function renderLeaderboard(){
   const list = loadLeaderboard();
   leaderListEl.innerHTML = '';
-  if(list.length === 0){
-    leaderListEl.innerHTML = '<div class="small">Пока нет результатов</div>';
-    return;
-  }
+  if(list.length === 0){ leaderListEl.innerHTML = '<div class="small">Пока нет результатов</div>'; return; }
   list.forEach((it, idx) => {
     const div = document.createElement('div');
     div.className = 'leaderItem';
-    const name = document.createElement('div');
-    name.textContent = `${idx+1}. ${it.name}`;
-    const score = document.createElement('div');
-    score.textContent = it.score;
-    div.appendChild(name);
-    div.appendChild(score);
-    leaderListEl.appendChild(div);
+    const name = document.createElement('div'); name.textContent = `${idx+1}. ${it.name}`;
+    const score = document.createElement('div'); score.textContent = it.score;
+    div.appendChild(name); div.appendChild(score); leaderListEl.appendChild(div);
   });
 }
+
+// Загрузка изображения для бонуса
+let buffImage = new Image();
+let buffImageLoaded = false;
+let buffObjectURL = null;
+
+buffFileInput.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(buffObjectURL) URL.revokeObjectURL(buffObjectURL);
+  buffObjectURL = URL.createObjectURL(file);
+  buffImage = new Image();
+  buffImage.onload = () => {
+    buffImageLoaded = true;
+    fileLabelText.textContent = 'Изображение загружено';
+  };
+  buffImage.onerror = () => {
+    buffImageLoaded = false;
+    fileLabelText.textContent = 'Ошибка загрузки';
+  };
+  buffImage.src = buffObjectURL;
+});
 
 // Управление
 window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
@@ -178,19 +187,15 @@ function init(){
   score = 0; lives = 3; items = []; gameOver = false;
   player.x = W/2; player.y = H/2;
   player.speed = player.baseSpeed;
-  elapsed = 0;
-  spawnTimer = 0;
-  buffSpawnTimer = 0;
-  invincible = false;
-  invTimer = 0;
+  elapsed = 0; spawnTimer = 0; buffSpawnTimer = 0;
+  invincible = false; invTimer = 0;
   scoreEl.textContent = score; livesEl.textContent = lives; timeEl.textContent = '0.0'; invTimerEl.textContent = '0.0';
   lastTime = performance.now();
-  saveScoreBtn.disabled = false;
-  playerNameInput.disabled = false;
+  saveScoreBtn.disabled = false; playerNameInput.disabled = false;
   requestAnimationFrame(loop);
 }
 
-// Спавн предметов: зелёные, красные и буффет
+// Спавн предметов
 function spawnItem(typeOverride){
   const edge = Math.floor(Math.random()*4);
   let x = Math.random()*W, y = Math.random()*H;
@@ -205,59 +210,33 @@ function spawnItem(typeOverride){
   const vy = Math.sin(angle)*speed;
   const redProb = Math.min(0.45, 0.12 + elapsed * 0.01);
   const type = typeOverride || (Math.random() < redProb ? 'red' : 'green');
-  const r = type === 'buff' ? 26 : (14 + Math.random()*10);
+  const r = type === 'buff' ? 28 : (14 + Math.random()*10);
   items.push({x,y,vx,vy,type,r, spawnTime: elapsed});
 }
 
-// Обновление логики
-// touch support variables
+// Touch support
 let touchActive = false;
 let touchTarget = { x: player.x, y: player.y };
+function setTouchTarget(x, y){ touchActive = true; touchTarget.x = x; touchTarget.y = y; }
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const t = e.touches[0]; const rect = canvas.getBoundingClientRect(); setTouchTarget((t.clientX - rect.left), (t.clientY - rect.top)); }, {passive:false});
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); const t = e.touches[0]; const rect = canvas.getBoundingClientRect(); setTouchTarget((t.clientX - rect.left), (t.clientY - rect.top)); }, {passive:false});
+canvas.addEventListener('touchend', (e) => { e.preventDefault(); touchActive = false; }, {passive:false});
 
-function setTouchTarget(x, y){
-  touchActive = true;
-  touchTarget.x = x;
-  touchTarget.y = y;
-}
-
-canvas.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  const t = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  setTouchTarget((t.clientX - rect.left), (t.clientY - rect.top));
-}, {passive:false});
-
-canvas.addEventListener('touchmove', (e) => {
-  e.preventDefault();
-  const t = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  setTouchTarget((t.clientX - rect.left), (t.clientY - rect.top));
-}, {passive:false});
-
-canvas.addEventListener('touchend', (e) => {
-  e.preventDefault();
-  touchActive = false;
-}, {passive:false});
-
+// Обновление логики
 function update(dt){
   if(gameOver) return;
   elapsed += dt;
-  // ускорение игрока
   const accel = 12;
   player.speed = player.baseSpeed + elapsed * accel;
 
-  // движение игрок: клавиши или тач
+  // движение
   if(touchActive){
     const dx = touchTarget.x - player.x;
     const dy = touchTarget.y - player.y;
     const d = Math.hypot(dx,dy) || 1;
     const stopRadius = 6;
-    if(d > stopRadius){
-      player.vx = (dx / d) * player.speed;
-      player.vy = (dy / d) * player.speed;
-    } else { player.vx = 0; player.vy = 0; }
-    player.x += player.vx * dt;
-    player.y += player.vy * dt;
+    if(d > stopRadius){ player.vx = (dx / d) * player.speed; player.vy = (dy / d) * player.speed; } else { player.vx = 0; player.vy = 0; }
+    player.x += player.vx * dt; player.y += player.vy * dt;
   } else {
     let ax=0, ay=0;
     if(keys['arrowleft']||keys['a']) ax = -1;
@@ -265,17 +244,14 @@ function update(dt){
     if(keys['arrowup']||keys['w']) ay = -1;
     if(keys['arrowdown']||keys['s']) ay = 1;
     const len = Math.hypot(ax,ay) || 1;
-    player.vx = (ax/len) * player.speed;
-    player.vy = (ay/len) * player.speed;
-    player.x += player.vx * dt;
-    player.y += player.vy * dt;
+    player.vx = (ax/len) * player.speed; player.vy = (ay/len) * player.speed;
+    player.x += player.vx * dt; player.y += player.vy * dt;
   }
 
-  // границы
   player.x = Math.max(player.r, Math.min(W-player.r, player.x));
   player.y = Math.max(player.r, Math.min(H-player.r, player.y));
 
-  // спавн обычных предметов
+  // спавн обычных
   spawnTimer += dt;
   const minInterval = 0.18;
   const maxInterval = 0.9;
@@ -286,146 +262,94 @@ function update(dt){
     for(let i=0;i<count;i++) spawnItem();
   }
 
-  // спавн Баффета каждые BUFF_SPAWN_INTERVAL секунд
+  // спавн бонуса каждые 30 сек
   buffSpawnTimer += dt;
   if(buffSpawnTimer >= BUFF_SPAWN_INTERVAL){
     buffSpawnTimer = 0;
-    // спавним buff
     spawnItem('buff');
   }
 
   // обновление предметов и столкновения
   for(let i = items.length-1; i>=0; i--){
     const it = items[i];
-    it.x += it.vx * dt;
-    it.y += it.vy * dt;
+    it.x += it.vx * dt; it.y += it.vy * dt;
     it.vx *= 0.998; it.vy *= 0.998;
 
-    // если это buff и прошло BUFF_LIFETIME с момента спавна — удаляем
-    if(it.type === 'buff' && (elapsed - it.spawnTime) > BUFF_LIFETIME){
-      items.splice(i,1);
-      continue;
-    }
+    if(it.type === 'buff' && (elapsed - it.spawnTime) > BUFF_LIFETIME){ items.splice(i,1); continue; }
+    if(it.x < -140 || it.x > W+140 || it.y < -140 || it.y > H+140){ items.splice(i,1); continue; }
 
-    // удалять если далеко
-    if(it.x < -140 || it.x > W+140 || it.y < -140 || it.y > H+140) { items.splice(i,1); continue; }
-
-    // столкновение с игроком
     const dx = it.x - player.x, dy = it.y - player.y;
     const dist = Math.hypot(dx,dy);
     if(dist < it.r + player.r*0.6){
       if(it.type === 'green'){
         const bonus = 10 + Math.floor(elapsed/10);
-        score += bonus;
-        scoreEl.textContent = score;
+        score += bonus; scoreEl.textContent = score;
       } else if(it.type === 'red'){
         if(!invincible){
-          lives -= 1;
-          livesEl.textContent = lives;
-          player.x -= dx*0.6; player.y -= dy*0.6;
+          lives -= 1; livesEl.textContent = lives; player.x -= dx*0.6; player.y -= dy*0.6;
           if(lives <= 0){
             gameOver = true;
-            setTimeout(()=> {
-              finalScoreEl.textContent = score;
-              renderLeaderboard();
-              openModal();
-            }, 120);
+            setTimeout(()=> { finalScoreEl.textContent = score; renderLeaderboard(); openModal(); }, 120);
           }
         } else {
-          // если бессмертен — красные не вредят, можно давать небольшой бонус
-          score += 2;
-          scoreEl.textContent = score;
+          score += 2; scoreEl.textContent = score;
         }
       } else if(it.type === 'buff'){
-        // поймали Баффета — даём бессмертие
-        invincible = true;
-        invTimer = INV_DURATION;
-        invTimerEl.textContent = invTimer.toFixed(1);
-        // визуальный эффект: небольшой бонус очков
-        score += 50;
-        scoreEl.textContent = score;
+        invincible = true; invTimer = INV_DURATION; invTimerEl.textContent = invTimer.toFixed(1);
+        score += 50; scoreEl.textContent = score;
       }
       items.splice(i,1);
     }
   }
 
-  // обновление таймера бессмертия
   if(invincible){
     invTimer -= dt;
-    if(invTimer <= 0){
-      invincible = false;
-      invTimer = 0;
-    }
+    if(invTimer <= 0){ invincible = false; invTimer = 0; }
     invTimerEl.textContent = invTimer.toFixed(1);
-  } else {
-    invTimerEl.textContent = '0.0';
-  }
+  } else { invTimerEl.textContent = '0.0'; }
 }
 
 // Рисование
 function draw(){
   ctx.clearRect(0,0,W,H);
   const g = ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'rgba(0,0,0,0.12)');
-  g.addColorStop(1,'rgba(0,0,0,0.28)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,W,H);
+  g.addColorStop(0,'rgba(0,0,0,0.12)'); g.addColorStop(1,'rgba(0,0,0,0.28)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
 
-  // предметы
   for(const it of items){
-    // фон круга
     ctx.beginPath();
     if(it.type === 'green') ctx.fillStyle = '#2ecc71';
     else if(it.type === 'red') ctx.fillStyle = '#e74c3c';
     else if(it.type === 'buff') ctx.fillStyle = '#f1c40f';
     ctx.globalAlpha = 0.95;
-    ctx.arc(it.x, it.y, it.r+6, 0, Math.PI*2);
-    ctx.fill();
+    ctx.arc(it.x, it.y, it.r+6, 0, Math.PI*2); ctx.fill();
     ctx.globalAlpha = 1;
-    // эмодзи
-    ctx.font = (it.r+6) + 'px serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const emoji = it.type === 'buff' ? buffEmoji : dollarEmoji;
-    ctx.fillText(emoji, it.x, it.y + 2);
-    // если buff — добавить маленькую белую рамку
-    if(it.type === 'buff'){
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-      ctx.lineWidth = 2;
-      ctx.arc(it.x, it.y, it.r+8, 0, Math.PI*2);
-      ctx.stroke();
+
+    // рисуем изображение, если это buff и изображение загружено
+    if(it.type === 'buff' && buffImageLoaded){
+      const size = it.r*2;
+      ctx.drawImage(buffImage, it.x - it.r, it.y - it.r, size, size);
+      // белая рамка
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2; ctx.arc(it.x, it.y, it.r+8, 0, Math.PI*2); ctx.stroke();
+    } else {
+      // рисуем эмодзи (или доллар)
+      ctx.font = (it.r+6) + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const emoji = it.type === 'buff' ? '🧓' : dollarEmoji;
+      ctx.fillText(emoji, it.x, it.y + 2);
     }
   }
 
-  // игрок: фон + смайлик + зелёная рамка при бессмертии
-  ctx.beginPath();
-  ctx.fillStyle = '#ffd54f';
-  ctx.arc(player.x, player.y, player.r+8, 0, Math.PI*2);
-  ctx.fill();
-
+  // игрок
+  ctx.beginPath(); ctx.fillStyle = '#ffd54f'; ctx.arc(player.x, player.y, player.r+8, 0, Math.PI*2); ctx.fill();
   if(invincible){
-    ctx.beginPath();
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = '#2ecc71';
-    ctx.arc(player.x, player.y, player.r+12, 0, Math.PI*2);
-    ctx.stroke();
+    ctx.beginPath(); ctx.lineWidth = 6; ctx.strokeStyle = '#2ecc71'; ctx.arc(player.x, player.y, player.r+12, 0, Math.PI*2); ctx.stroke();
   }
-
-  ctx.font = (player.r+8) + 'px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(playerEmoji, player.x, player.y + 2);
+  ctx.font = (player.r+8) + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(playerEmoji, player.x, player.y + 2);
 
   if(gameOver){
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle = '#fff';
-    ctx.font = '34px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Игра окончена', W/2, H/2 - 20);
-    ctx.font = '18px Arial';
-    ctx.fillText('Открой Leaderboard, чтобы сохранить результат', W/2, H/2 + 12);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#fff'; ctx.font = '34px Arial'; ctx.textAlign = 'center'; ctx.fillText('Игра окончена', W/2, H/2 - 20);
+    ctx.font = '18px Arial'; ctx.fillText('Открой Leaderboard, чтобы сохранить результат', W/2, H/2 + 12);
   }
 }
 
@@ -433,57 +357,27 @@ function draw(){
 function loop(ts){
   const dt = Math.min(0.05, (ts - lastTime) / 1000);
   lastTime = ts;
-  update(dt);
-  draw();
-  timeEl.textContent = elapsed.toFixed(1);
+  update(dt); draw(); timeEl.textContent = elapsed.toFixed(1);
   if(!gameOver) requestAnimationFrame(loop);
 }
 
-// Инициализация при загрузке
+// Старт
 init();
 
-// Закрытие модалки по клику вне контента
-modal.addEventListener('click', (e)=>{
-  if(e.target === modal) closeModal();
-});
-
-// Enter для сохранения
-playerNameInput.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter') saveScoreBtn.click();
-});
+// Модалка закрытие по клику вне
+modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+playerNameInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveScoreBtn.click(); });
 
 // Предзаполнить лидерборд при первом запуске
 if(loadLeaderboard().length === 0){
-  const demo = [
-    {name:'Alex', score:420},
-    {name:'Mira', score:360},
-    {name:'Sam', score:300},
-    {name:'Lena', score:260},
-    {name:'Ivan', score:220}
-  ];
+  const demo = [{name:'Alex', score:420},{name:'Mira', score:360},{name:'Sam', score:300},{name:'Lena', score:260},{name:'Ivan', score:220}];
   saveLeaderboard(demo);
 }
 
-// Пауза при уходе со вкладки (сохраняем состояние)
-document.addEventListener('visibilitychange', () => {
-  if(document.hidden){
-    // просто остановим цикл — при возвращении пользователь может нажать Перезапустить
-    // (не завершаем игру автоматически)
-    // Для простоты: ничего не делаем — requestAnimationFrame при скрытой вкладке будет замедлен браузером
-  }
-});
-
-// Кнопка полноэкран (опционально)
+// Кнопка полноэкран
 const fsBtn = document.createElement('button');
-fsBtn.textContent = 'Полноэкран';
-fsBtn.className = 'btn';
-fsBtn.style.marginLeft = '6px';
-fsBtn.addEventListener('click', async () => {
-  try {
-    if(!document.fullscreenElement) await canvas.requestFullscreen();
-    else await document.exitFullscreen();
-  } catch(e){}
-});
+fsBtn.textContent = 'Полноэкран'; fsBtn.className = 'btn'; fsBtn.style.marginLeft = '6px';
+fsBtn.addEventListener('click', async () => { try { if(!document.fullscreenElement) await canvas.requestFullscreen(); else await document.exitFullscreen(); } catch(e){} });
 document.querySelector('.hud').appendChild(fsBtn);
 </script>
 </body>
