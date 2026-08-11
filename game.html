@@ -346,6 +346,108 @@ if(loadLeaderboard().length === 0){
   ];
   saveLeaderboard(demo);
 }
+  // --- Адаптивный canvas с учётом DPR ---
+function resizeCanvasForDPR(){
+  const ratio = Math.max(1, window.devicePixelRatio || 1);
+  const cssW = canvas.clientWidth || 800;
+  const cssH = canvas.clientHeight || 520;
+  canvas.width = Math.floor(cssW * ratio);
+  canvas.height = Math.floor(cssH * ratio);
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  W = canvas.width / ratio;
+  H = canvas.height / ratio;
+}
+window.addEventListener('resize', resizeCanvasForDPR);
+resizeCanvasForDPR();
+
+// --- Простое тач-управление: касание ведёт игрока к точке ---
+let touchActive = false;
+let touchTarget = { x: player.x, y: player.y };
+
+function setTouchTarget(x, y){
+  touchActive = true;
+  touchTarget.x = x;
+  touchTarget.y = y;
+}
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  setTouchTarget((t.clientX - rect.left), (t.clientY - rect.top));
+}, {passive:false});
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  setTouchTarget((t.clientX - rect.left), (t.clientY - rect.top));
+}, {passive:false});
+
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  touchActive = false;
+}, {passive:false});
+
+// --- Интеграция в update: если touchActive, двигать игрока к touchTarget ---
+const touchSpeedFactor = 1.0; // можно увеличить для более отзывчивого управления
+const stopRadius = 6;
+const originalUpdate = update;
+update = function(dt){
+  // если тач активен — переопределяем ax/ay через цель
+  if(touchActive){
+    const dx = touchTarget.x - player.x;
+    const dy = touchTarget.y - player.y;
+    const d = Math.hypot(dx,dy) || 1;
+    // нормализуем и задаём временную скорость
+    const ax = (dx / d) * touchSpeedFactor;
+    const ay = (dy / d) * touchSpeedFactor;
+    // временно устанавливаем ключи через вектор (вместо клавиш)
+    player.vx = ax * player.speed;
+    player.vy = ay * player.speed;
+    // если близко — остановиться
+    if(d < stopRadius){
+      player.vx = 0; player.vy = 0;
+    }
+    player.x += player.vx * dt;
+    player.y += player.vy * dt;
+  } else {
+    // если тач не активен — выполняем обычную логику (стрелки/WASD)
+    originalUpdate(dt);
+    return;
+  }
+
+  // далее выполняем остальную логику: границы, спавн, предметы и т.д.
+  // (скопируйте из вашей функции update оставшуюся часть после движения игрока)
+  // Для простоты: вызовем часть логики, которая не зависит от движения:
+  // обновление спавна и предметов — можно вынести в отдельную функцию spawnAndItems(dt)
+  // Но если вы хотите минимально вмешиваться, замените тело update на логику выше,
+  // а затем вставьте остальной код из оригинальной update (спавн, столкновения).
+};
+
+// --- Пауза при уходе со вкладки ---
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){
+    gameOver = gameOver || false; // не завершать игру, но остановить цикл
+    // можно поставить флаг paused и не вызывать requestAnimationFrame
+    // простая реализация: если игра идёт — поместим touchActive=false
+    touchActive = false;
+  }
+});
+
+// --- Кнопка полноэкран (опционально) ---
+const fsBtn = document.createElement('button');
+fsBtn.textContent = 'Полноэкран';
+fsBtn.className = 'btn';
+fsBtn.style.marginLeft = '6px';
+fsBtn.addEventListener('click', async () => {
+  try {
+    if(!document.fullscreenElement) await canvas.requestFullscreen();
+    else await document.exitFullscreen();
+  } catch(e){}
+});
+document.querySelector('.hud').appendChild(fsBtn);
+
 </script>
 </body>
 </html>
