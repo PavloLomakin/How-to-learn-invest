@@ -212,6 +212,63 @@
     opacity: 0.6;
   }
 </style>
+<script>
+  // Пасхалка: реагирует на ввод слов "гей", "gay", "pride"
+  let secretInput = "";
+
+  document.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+
+    // Добавляем букву
+    if (/^[a-zа-яё]$/.test(key)) {
+      secretInput += key;
+
+      // Оставляем только последние 10 символов
+      if (secretInput.length > 10) {
+        secretInput = secretInput.slice(-10);
+      }
+
+      // Проверяем три ключевых слова
+      if (
+        secretInput.includes("гей") ||
+        secretInput.includes("gay") ||
+        secretInput.includes("pride")
+      ) {
+        activatePrideMode();
+      }
+    }
+  });
+
+  function activatePrideMode() {
+    // Меняем фон
+    document.body.style.backgroundColor = "#ff69b4"; // ярко‑розовый
+
+    // Создаём контейнер для смайликов
+    const prideBar = document.createElement("div");
+    prideBar.style.position = "fixed";
+    prideBar.style.bottom = "0";
+    prideBar.style.left = "0";
+    prideBar.style.width = "100%";
+    prideBar.style.textAlign = "center";
+    prideBar.style.fontSize = "1.6em";
+    prideBar.style.padding = "10px 0";
+    prideBar.style.background = "rgba(0,0,0,0.25)";
+    prideBar.style.zIndex = "99999";
+
+    const emojis = [
+      "🏳️‍🌈","🏳️‍⚧️","🌈","💖","💙","💜","💛","❤️",
+      "✨","💅","👬","👭","💘","💗","💓","💞",
+      "🦄","🎉","🎊","🔥"
+    ];
+
+    prideBar.innerHTML = emojis.join(" ");
+
+    document.body.appendChild(prideBar);
+
+    // Чтобы пасхалка не повторялась бесконечно
+    secretInput = "";
+  }
+</script>
 
 </body>
 </html>
